@@ -7,7 +7,7 @@
 @SQ	SN:6	LN:171115067	M5:1D3A93A248D92A729EE764823ACBBC6B	UR:/tmp/../reference_genome/Homo_sapiens.GRCh37.GATK.illumina.fasta
 @SQ	SN:7	LN:159138663	M5:618366E953D6AAAD97DBE4777C29375E	UR:/tmp/../reference_genome/Homo_sapiens.GRCh37.GATK.illumina.fasta
 @SQ	SN:8	LN:146364022	M5:96F514A9929E410C6651697BDED59AEC	UR:/tmp/../reference_genome/Homo_sapiens.GRCh37.GATK.illumina.fasta
-@SQ	SN:9	LN:141213431	M5:3E273117F15E0A400F01055D9F393768	UR:/tmp/../reference_genome/Homo_sapiens.GRCh37.GATK.illumina.fasta
+@SQ	SN:9	LN:141213431	M5:3E273117F15E0A400F01055D9F393768	UR:/some_other_dir/../reference_genome/Homo_sapiens.GRCh37.GATK.illumina.fasta
 @SQ	SN:10	LN:135534747	M5:988C28E000E84C26D552359AF1EA2E1D	UR:/tmp/../reference_genome/Homo_sapiens.GRCh37.GATK.illumina.fasta
 @SQ	SN:11	LN:135006516	M5:98C59049A2DF285C76FFB1C6DB8F8B96	UR:/tmp/../reference_genome/Homo_sapiens.GRCh37.GATK.illumina.fasta
 @SQ	SN:12	LN:133851895	M5:51851AC0E1A115847AD36449B0015864	UR:/tmp/../reference_genome/Homo_sapiens.GRCh37.GATK.illumina.fasta

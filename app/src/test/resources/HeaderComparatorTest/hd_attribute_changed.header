@@ -1,4 +1,4 @@
-@HD	VN:1.5	SO:coordinate
+@HD	VN:1.2	SO:coordinate
 @SQ	SN:1	LN:249250621	M5:1B22B98CDEB4A9304CB5D48026A85128	UR:/tmp/../reference_genome/Homo_sapiens.GRCh37.GATK.illumina.fasta
 @SQ	SN:2	LN:243199373	M5:A0D9851DA00400DEC1098A9255AC712E	UR:/tmp/../reference_genome/Homo_sapiens.GRCh37.GATK.illumina.fasta
 @SQ	SN:3	LN:198022430	M5:641E4338FA8D52A5B781BD2A2C08D3C3	UR:/tmp/../reference_genome/Homo_sapiens.GRCh37.GATK.illumina.fasta

@@ -19,15 +19,11 @@ import static java.lang.String.format;
 public class BamCompare {
     private static final Logger logger = LoggerFactory.getLogger(BamCompare.class);
     private final String referenceSequence;
+    private HeaderComparator headerComparator;
 
-    public BamCompare(String referenceSequence) {
+    public BamCompare(String referenceSequence, HeaderComparator headerComparator) {
         this.referenceSequence = referenceSequence;
-    }
-
-    public static void main(String[] args) {
-        String rg = "/home/ned/source/hartwig/data/hg37/Homo_sapiens.GRCh37.GATK.illumina.fasta";
-        new BamCompare(rg).compare("/home/ned/source/hartwig/data/colo829_chr20/COLO829v003R_chr20.sorted.bam",
-                "/home/ned/source/hartwig/data/colo829_chr20/COLO829v003R_chr20.sorted.bam.cram.bam", true);
+        this.headerComparator = headerComparator;
     }
 
     public BamComparisonOutcome compare(String bamOne, String bamTwo, boolean compareHeaders) {
@@ -38,11 +34,12 @@ public class BamCompare {
             SamReader samOne = open(bamOne);
             SamReader samTwo = open(bamTwo);
 
-            if (compareHeaders && !new HeaderComparator().areHeadersEqualIgnoringRefGenomeUrl(samOne.getFileHeader(), samTwo.getFileHeader())) {
-                logger.error("Headers are not equal!");
-                logger.error("<<<<<<<<\n{}\n========{}\n>>>>>>>>", samOne.getFileHeader().getSAMString(),
-                        samTwo.getFileHeader().getSAMString());
-                return new BamComparisonOutcome(false, "Headers are not equal (ignoring ref genome URLs)");
+            if (compareHeaders && !headerComparator.areHeadersEquivalent(samOne.getFileHeader(), samTwo.getFileHeader())) {
+                String notEqual = "Headers are not equal!";
+                logger.error(notEqual);
+                logger.info("Header for '{}':\n\n{}", bamOne, samOne.getFileHeader().getSAMString());
+                logger.info("Header for '{}':\n\n{}", bamTwo, samTwo.getFileHeader().getSAMString());
+                return new BamComparisonOutcome(false, notEqual);
             }
 
             AsyncBufferedIterator<SAMRecord> itOne = new AsyncBufferedIterator<>(samOne.iterator(), 100);
