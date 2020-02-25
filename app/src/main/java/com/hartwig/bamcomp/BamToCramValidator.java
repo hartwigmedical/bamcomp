@@ -50,7 +50,7 @@ public class BamToCramValidator {
             String one = ensureBam(inputOne);
             String two = ensureBam(inputTwo);
             Callable<String> bamComparison = () -> {
-                BamCompare.BamComparisonOutcome result = new BamCompare(REF_GENOME, new HeaderComparator())
+                BamCompare.ComparisonOutcome result = new BamCompare(REF_GENOME, new HeaderComparator())
                         .compare(one, two, true);
                 if (result.areEqual) {
                     return result.reason;
