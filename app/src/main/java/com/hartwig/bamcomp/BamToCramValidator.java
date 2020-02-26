@@ -75,8 +75,8 @@ public class BamToCramValidator {
         if (inputFile.toLowerCase().endsWith(".cram")) {
             String newBam = inputFile + ".bam";
             logger.info("Converting '{}' to BAM '{}'", inputFile, newBam);
-            Callable<String> callback = shell(format("%s view -O bam,decode_md=0 -o %s -@ %s -T %s %s",
-                    SAMTOOLS,  newBam, ALL_CORES, REF_GENOME, inputFile), newBam);
+            Callable<String> callback = shell(format("%s view -O bam -o %s -@ %s %s",
+                    SAMTOOLS,  newBam, ALL_CORES, inputFile), newBam);
             return execute(singletonList(callback)).get(0).get();
         } else {
             return inputFile;
