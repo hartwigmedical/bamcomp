@@ -26,7 +26,7 @@ public class BamToCramValidator {
     private static final String ALL_CORES = "$(nproc)";
     private static final String SAMTOOLS = "/opt/tools/samtools/1.9/samtools";
     private static final String SAMBAMBA = "/opt/tools/sambamba/0.6.8/sambamba";
-    private static final String REF_GENOME = "/opt/resources/reference_genome/Homo_sapiens.GRCh37.GATK.illumina.fasta";
+    private static final String REF_GENOME = "/opt/resources/reference_genome/hg37/Homo_sapiens.GRCh37.GATK.illumina.fasta";
 
     private BamToCramValidator(int cores) {
         executorService = Executors.newFixedThreadPool(cores);
