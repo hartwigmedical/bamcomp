@@ -21,36 +21,26 @@ import static java.util.Collections.singletonList;
 
 public class BamToCramValidator {
     private static final Logger logger = LoggerFactory.getLogger(BamToCramValidator.class);
+    private String referenceGenome;
     private ExecutorService executorService;
+    private final String samtoolsPath;
+    private final String sambambaPath;
+    private int cores;
 
-    private static final String ALL_CORES = "$(nproc)";
-    private static final String SAMTOOLS = "/opt/tools/samtools/1.9/samtools";
-    private static final String SAMBAMBA = "/opt/tools/sambamba/0.6.8/sambamba";
-    private static final String REF_GENOME = "/opt/resources/reference_genome/hg37/Homo_sapiens.GRCh37.GATK.illumina.fasta";
-
-    private BamToCramValidator(int cores) {
+    BamToCramValidator(String referenceGenome, String samtoolsPath, String sambambaPath, int cores) {
+        this.referenceGenome = referenceGenome;
+        this.samtoolsPath = samtoolsPath;
+        this.sambambaPath = sambambaPath;
+        this.cores = cores;
         executorService = Executors.newFixedThreadPool(cores);
     }
 
-    public static void main(String[] args) {
-        if (args.length != 3) {
-            throw new IllegalArgumentException("USAGE: [in1.bam|in1.cram] [in2.bam|in2.cram] [# of cores]");
-        }
-        try {
-            new BamToCramValidator(Integer.parseInt(args[2])).validate(args[0], args[1]);
-            System.exit(0);
-        } catch (Exception e) {
-            logger.error("Unexpected exception!", e);
-            System.exit(1);
-        }
-    }
-
-    private void validate(String inputOne, String inputTwo) {
+    void validate(String inputOne, String inputTwo) {
         try {
             String one = ensureBam(inputOne);
             String two = ensureBam(inputTwo);
             Callable<String> bamComparison = () -> {
-                BamCompare.ComparisonOutcome result = new BamCompare(REF_GENOME, new HeaderComparator())
+                BamCompare.ComparisonOutcome result = new BamCompare(referenceGenome, new HeaderComparator())
                         .compare(one, two, true);
                 if (result.areEqual) {
                     return result.reason;
@@ -76,7 +66,7 @@ public class BamToCramValidator {
             String newBam = inputFile + ".bam";
             logger.info("Converting '{}' to BAM '{}'", inputFile, newBam);
             Callable<String> callback = shell(format("%s view -O bam -o %s -@ %s %s",
-                    SAMTOOLS,  newBam, ALL_CORES, inputFile), newBam);
+                    samtoolsPath,  newBam, cores, inputFile), newBam);
             return execute(singletonList(callback)).get(0).get();
         } else {
             return inputFile;
@@ -93,7 +83,7 @@ public class BamToCramValidator {
 
     private Callable<String> flagstat(String inputFile) {
         String outputFile = inputFile + ".flagstat";
-        return shell(format("%s flagstat -t %s %s | tee %s", SAMBAMBA, ALL_CORES, inputFile, outputFile), outputFile);
+        return shell(format("%s flagstat -t %s %s | tee %s", sambambaPath, cores, inputFile, outputFile), outputFile);
     }
 
     private Callable<String> shell(String command, String outputPath) {
