@@ -9,7 +9,7 @@ public class BamCompMain implements Callable<Integer> {
     @Option(names = {"-n", "--cores"}, description = "Number of cores to use for processing", defaultValue = "1")
     private Integer cores;
 
-    @Option(names = {"-g", "--reference-genome"}, description = "Absolute path to reference genome", required = true)
+    @Option(names = {"-r", "--reference-genome"}, description = "Absolute path to reference genome", required = true)
     private String referenceGenome;
 
     @Option(names = {"--samtools-binary"}, description = "Absolute path to samtools executable", required = true)
