@@ -1,14 +1,8 @@
 package com.hartwig.bamcomp;
 
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SamInputResource;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SamReaderFactory;
-import htsjdk.samtools.util.AsyncBufferedIterator;
-import htsjdk.samtools.util.StopWatch;
-import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static java.lang.String.format;
+
+import static com.hartwig.bamcomp.BamCompare.ComparisonOutcome.fail;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,12 +10,23 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
-import static com.hartwig.bamcomp.BamCompare.ComparisonOutcome.fail;
-import static java.lang.String.format;
+import com.hartwig.bamcomp.report.DifferenceReporter;
+
+import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SamInputResource;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SamReaderFactory;
+import htsjdk.samtools.util.AsyncBufferedIterator;
+import htsjdk.samtools.util.StopWatch;
 
 public class BamCompare {
-    private static final Logger logger = LoggerFactory.getLogger(BamCompare.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(BamCompare.class);
     private final String referenceSequence;
     private HeaderComparator headerComparator;
 
@@ -30,20 +35,20 @@ public class BamCompare {
         this.headerComparator = headerComparator;
     }
 
-    public ComparisonOutcome compare(String bamOne, String bamTwo, boolean compareHeaders) {
+    public void compare(String bamOne, String bamTwo, boolean compareHeaders, DifferenceReporter reporter) {
         StopWatch stopwatch = new StopWatch();
         stopwatch.start();
-        logger.info("Thoroughly comparing \"{}\" to \"{}\"", bamOne, bamTwo);
+        LOGGER.info("Thoroughly comparing \"{}\" to \"{}\"", bamOne, bamTwo);
         try {
             SamReader samOne = open(bamOne);
             SamReader samTwo = open(bamTwo);
 
             if (compareHeaders && !headerComparator.areHeadersEquivalent(samOne.getFileHeader(), samTwo.getFileHeader())) {
                 String notEqual = "Headers are not equal!";
-                logger.error(notEqual);
-                logger.info("Header for '{}':\n\n{}", bamOne, samOne.getFileHeader().getSAMString());
-                logger.info("Header for '{}':\n\n{}", bamTwo, samTwo.getFileHeader().getSAMString());
-                return new ComparisonOutcome(false, notEqual);
+                LOGGER.error(notEqual);
+                LOGGER.info("Header for '{}':\n\n{}", bamOne, samOne.getFileHeader().getSAMString());
+                LOGGER.info("Header for '{}':\n\n{}", bamTwo, samTwo.getFileHeader().getSAMString());
+                reporter.report(notEqual);
             }
 
             AsyncBufferedIterator<SAMRecord> itOne = new AsyncBufferedIterator<>(samOne.iterator(), 100);
@@ -57,26 +62,25 @@ public class BamCompare {
                     SAMRecord nextTwo = itTwo.next();
                     ComparisonOutcome comparison = compare(nextOne, nextTwo);
                     if (!comparison.areEqual) {
-                        throw new IllegalStateException(format("%s at %d:\n<<<<<\n%s\n=====\n%s\n>>>>>",
+                        reporter.report(format("%s at %d:\n<<<<<\n%s\n=====\n%s\n>>>>>",
                                 comparison.reason, position, nextOne.getSAMString(), nextTwo.getSAMString()));
                     }
                 } else {
-                    return new ComparisonOutcome(false, "Fewer records in " + bamTwo);
+                    reporter.report("Fewer records in " + bamTwo);
+                    return;
                 }
                 if (position % 5_000_000 == 0) {
-                    logger.info("{} records inspected", position);
+                    LOGGER.info("{} records inspected", position);
                 }
             }
             if (itTwo.hasNext()) {
-                return new ComparisonOutcome(false,
-                        format("There is extra data in '%s' beyond position %d", bamTwo, position));
+                reporter.report(format("There is extra data in '%s' beyond position %d", bamTwo, position));
             }
-            return new ComparisonOutcome(true, "All " + position + " records compared equal");
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
             stopwatch.stop();
-            logger.info("Completed comparison in {} seconds", stopwatch.getElapsedTimeSecs());
+            LOGGER.info("Completed comparison in {} seconds", stopwatch.getElapsedTimeSecs());
         }
     }
 
@@ -137,7 +141,7 @@ public class BamCompare {
     }
 
     private static <T> boolean safeUnequals(final T attribute1, final T attribute2) {
-        return attribute1 != null ? !attribute1.equals(attribute2) : attribute2 != null;
+        return !Objects.equals(attribute1, attribute2);
     }
 
     private SamReader open(String bamPath) throws IOException {
