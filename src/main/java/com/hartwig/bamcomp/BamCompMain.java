@@ -2,6 +2,10 @@ package com.hartwig.bamcomp;
 
 import java.util.concurrent.Callable;
 
+import com.hartwig.bamcomp.report.DifferenceReporter;
+import com.hartwig.bamcomp.report.PrintAndContinueReporter;
+import com.hartwig.bamcomp.report.PrintAndExitReporter;
+
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
 
@@ -18,16 +22,17 @@ public class BamCompMain implements Callable<Integer> {
     @Option(names = {"--sambamba-binary"}, description = "Absolute path to sambamba executable", required = true)
     private String sambambaPath;
 
-    @Option(names = {"-1", "--input-one"}, description = "First input file", required = true)
-    private String inputOne;
+    @Option(names = {"-i", "--inputs"}, arity = "2", description = "Exactly two input files", required = true)
+    private String[] input;
 
-    @Option(names = {"-2", "--input-two"}, description = "Second input file", required = true)
-    private String inputTwo;
+    @Option(names = {"-a", "--all-differences"}, description = "Don't exit on first difference, print all")
+    private boolean printAllDifferences;
 
     @Override
     public Integer call() {
         try {
-            new BamToCramValidator(referenceGenome, samtoolsPath, sambambaPath, cores).validate(inputOne, inputTwo);
+            DifferenceReporter reporter = printAllDifferences ? new PrintAndContinueReporter() : new PrintAndExitReporter();
+            new BamToCramValidator(referenceGenome, samtoolsPath, sambambaPath, cores, reporter).validate(input[0], input[1]);
             return 0;
         } catch (Exception e) {
             e.printStackTrace();
